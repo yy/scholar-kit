@@ -43,6 +43,7 @@ Multi-step workflows — coordinating checks, preparing submissions, or transfor
 | `presubmit-checks` | Pre-submission checklist — references, LaTeX cleanup, build, figure format, and front matter |
 | `bib-doi-toggle` | Toggle DOI/URL display in a biblatex bibliography so refs are clickable in the compiled PDF |
 | `arxiv-prep` | Prepare an arXiv submission package — clean source, compile, extract metadata, create tarball |
+| `anonymize-repo` | Export an anonymized, history-free copy of a research repo for double-blind review, scanned for anything identifying |
 | `accessible-pdf` | Make LaTeX documents produce accessible tagged PDFs (PDF/UA-1, PDF/A-2b) — non-destructive copy + LuaLaTeX build |
 
 ## Skill details
@@ -96,6 +97,10 @@ Toggles DOI/URL display in the compiled bibliography of a biblatex paper by edit
 #### `arxiv-prep`
 
 Automates arXiv submission packaging: optimizes bibliography (removes unused entries, reorders to match appearance), cleans source files, removes cruft, verifies compilation, extracts metadata for the submission form, and produces a ready-to-upload tarball. Uses [bib_optimizer](https://github.com/kwyip/bib_optimizer) and Google's [arxiv-latex-cleaner](https://github.com/google-research/arxiv-latex-cleaner) under the hood. Complements `presubmit-checks` (content quality) by handling the packaging side.
+
+#### `anonymize-repo`
+
+Exports the tracked files of a commit, with no git history, for a code-and-data link under double-blind review. A per-repo `anonymize.toml` lists the paths to leave out, the text to replace (each rule must match), and the identity patterns; the bundled script blanks Office and PDF author metadata, masks names left in PDF strings such as annotation authors, and fails if any pattern survives in text, Office parts, binary files, or PDF text. The skill then checks that the export still builds and tests, and covers publishing through Anonymous GitHub or an anonymized OSF view-only link.
 
 #### `accessible-pdf`
 
