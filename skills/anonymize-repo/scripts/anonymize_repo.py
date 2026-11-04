@@ -4,11 +4,15 @@
 # ///
 """Export an anonymized snapshot of a research repository for double-blind review.
 
-anonymize_repo.py export REPO OUT [--ref REF] [--config FILE] [--init]
+anonymize_repo.py export REPO OUT [--ref REF] [--config FILE] [--init | --push URL [--branch B]]
     Write the tracked files at REF (default HEAD) to OUT, with no git history; drop the
     excluded paths, apply the text replacements, blank author fields in Office metadata and PDF
-    /Author entries, mask identity terms left in PDF strings (annotation authors), then scan OUT. --init makes OUT a fresh git repository with one commit by
-    "Anonymous". Exit 1 if the scan finds anything.
+    /Author entries, mask identity terms left in PDF strings (annotation authors), then scan OUT.
+    --init makes OUT a fresh git repository with one commit by "Anonymous". --push commits OUT
+    as "Anonymous" on top of branch B (default main) at URL, or as its first commit if B does
+    not exist there, and pushes without force; it commits nothing if the tree is unchanged, and
+    refuses if B has a commit by anyone else. Exit 1 if the scan finds anything; then nothing
+    is committed or pushed.
 anonymize_repo.py scan DIR [--config FILE]
     Report every match of the identity patterns in DIR: text files, Office document parts,
     and PDF text (with pdftotext, if installed). Exit 1 on any match.
@@ -47,6 +51,15 @@ OFFICE = {".docx", ".xlsx", ".pptx", ".docm", ".xlsm", ".pptm"}
 # Office metadata fields that name people or organizations
 OFFICE_FIELDS = re.compile(rb"(<(dc:creator|cp:lastModifiedBy|Company|Manager)>)[^<]*(</\2>)")
 PDF_FIELDS = re.compile(rb"/(Author)\s*\((?:\\.|[^\\)])*\)")
+ANONYMOUS = "Anonymous <anonymous@example.invalid>"
+ANONYMOUS_ENV = {
+    "GIT_AUTHOR_NAME": "Anonymous",
+    "GIT_AUTHOR_EMAIL": "anonymous@example.invalid",
+    "GIT_COMMITTER_NAME": "Anonymous",
+    "GIT_COMMITTER_EMAIL": "anonymous@example.invalid",
+    "PATH": os.environ.get("PATH", ""),
+    "HOME": os.environ.get("HOME", ""),
+}
 
 
 @dataclass
@@ -206,20 +219,49 @@ def scan(root: Path, cfg: Config) -> list[str]:
 
 
 def init_repo(out: Path) -> None:
-    env = {
-        "GIT_AUTHOR_NAME": "Anonymous",
-        "GIT_AUTHOR_EMAIL": "anonymous@example.invalid",
-        "GIT_COMMITTER_NAME": "Anonymous",
-        "GIT_COMMITTER_EMAIL": "anonymous@example.invalid",
-        "PATH": os.environ.get("PATH", ""),
-        "HOME": os.environ.get("HOME", ""),
-    }
     for args in (
         ["init", "-q", "-b", "main"],
         ["add", "-A"],
         ["commit", "-q", "-m", "Anonymized snapshot"],
     ):
-        subprocess.run(["git", "-C", str(out), *args], check=True, env=env)
+        subprocess.run(["git", "-C", str(out), *args], check=True, env=ANONYMOUS_ENV)
+
+
+def git(out: Path, *args: str, env: dict | None = None) -> str:
+    r = subprocess.run(
+        ["git", "-C", str(out), *args], capture_output=True, text=True, env=env, check=False
+    )
+    if r.returncode:
+        sys.exit(f"anonymize_repo: git {args[0]} failed: {r.stderr.strip()}")
+    return r.stdout.strip()
+
+
+def push_snapshot(out: Path, url: str, branch: str) -> None:
+    """Commit OUT on top of BRANCH at URL, or as its first commit, and push without force."""
+    git(out, "init", "-q", "-b", branch)
+    git(out, "add", "-A")
+    tree, parent = git(out, "write-tree"), []
+    # ls-remote, fetch, and push keep the user's env (ssh agent); only the commit is Anonymous
+    if git(out, "ls-remote", url, f"refs/heads/{branch}"):
+        git(out, "fetch", "-q", url, f"refs/heads/{branch}")
+        head = git(out, "rev-parse", "FETCH_HEAD")
+        # a commit by anyone else means URL is not an anonymous mirror (the original repository?)
+        people = set(git(out, "log", "--format=%an <%ae>%n%cn <%ce>", head).splitlines())
+        if people - {ANONYMOUS}:
+            sys.exit(
+                f"anonymize_repo: {branch} at {url} has commits by "
+                f"{', '.join(sorted(people - {ANONYMOUS}))}; refusing to push"
+            )
+        if git(out, "rev-parse", f"{head}^{{tree}}") == tree:
+            git(out, "update-ref", f"refs/heads/{branch}", head)
+            print(f"{branch} at {url} already has this snapshot; nothing to push")
+            return
+        parent = ["-p", head]
+    msg = ["-m", "Anonymized snapshot"]
+    commit = git(out, "commit-tree", "--no-gpg-sign", tree, *parent, *msg, env=ANONYMOUS_ENV)
+    git(out, "update-ref", f"refs/heads/{branch}", commit)
+    git(out, "push", "-q", url, f"{commit}:refs/heads/{branch}")
+    print(f"pushed {commit[:7]} to {branch} at {url}")
 
 
 def main() -> None:
@@ -232,7 +274,10 @@ def main() -> None:
     e.add_argument("out", type=Path)
     e.add_argument("--ref", default="HEAD")
     e.add_argument("--config", type=Path)
-    e.add_argument("--init", action="store_true")
+    publish = e.add_mutually_exclusive_group()
+    publish.add_argument("--init", action="store_true")
+    publish.add_argument("--push", metavar="URL")
+    e.add_argument("--branch", default="main")
     s = sub.add_parser("scan")
     s.add_argument("root", type=Path)
     s.add_argument("--config", type=Path, required=True)
@@ -258,10 +303,12 @@ def main() -> None:
         print(line)
     if errors or hits:
         sys.exit(1)
+    print("scan clean")
     if a.init:
         init_repo(a.out)
         print(f"initialized {a.out} as a git repository with one anonymous commit")
-    print("scan clean")
+    if a.push:
+        push_snapshot(a.out, a.push, a.branch)
 
 
 if __name__ == "__main__":
