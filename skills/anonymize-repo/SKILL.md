@@ -37,8 +37,14 @@ Run the project's tests and build inside the export, for example `uv run pytest`
 
 ## 5. Publish (only with the user's approval)
 
-Re-export with `--init`; the copy becomes a git repository with one commit by "Anonymous". Then, as the user prefers:
-- **Anonymous GitHub** (anonymous.4open.science): push the export to a new private GitHub repository under the user's account, then register it. Private repositories need its GitHub App; enter the identity patterns as terms to replace, as a second layer.
+As the user prefers:
+- **Anonymous GitHub** (anonymous.4open.science): create an empty private GitHub repository under the user's account (no README or license; GitHub would commit them under the user's name), then export straight to it:
+  ```bash
+  uv run <skill-dir>/scripts/anonymize_repo.py export <repo> <scratch>/anon --ref HEAD --push <mirror-url>
+  ```
+  `--push` commits the export as "Anonymous" and pushes it to `main` (`--branch` for another). Register the repository on Anonymous GitHub; private repositories need its GitHub App. Enter the identity patterns as terms to replace, as a second layer.
 - **OSF**: upload the export to a private project and make a view-only link with *Anonymize* ticked. That hides contributor names in OSF itself, not in files, which is why the export comes first. The project title must not identify anyone.
 
-Open the link in a logged-out browser before it goes into the paper. After every change to the code or data, re-export and push again; never push the original repository.
+Open the link in a logged-out browser before it goes into the paper.
+
+To re-publish after a change to the code or data, run the same `--push` command into a fresh directory. It commits the new tree as "Anonymous" on top of the mirror's head and pushes without force. It skips the commit when nothing changed, and refuses to push when the scan finds anything or the mirror has a commit by anyone else (as the original repository would). Anonymous GitHub keeps serving the old snapshot until the owner clicks Refresh on the repository in its dashboard; then check the link logged out again. On OSF, replace the uploaded files. Never push the original repository.

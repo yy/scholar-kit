@@ -100,7 +100,7 @@ Automates arXiv submission packaging: optimizes bibliography (removes unused ent
 
 #### `anonymize-repo`
 
-Exports the tracked files of a commit, with no git history, for a code-and-data link under double-blind review. A per-repo `anonymize.toml` lists the paths to leave out, the text to replace (each rule must match), and the identity patterns; the bundled script blanks Office and PDF author metadata, masks names left in PDF strings such as annotation authors, and fails if any pattern survives in text, Office parts, binary files, or PDF text. The skill then checks that the export still builds and tests, and covers publishing through Anonymous GitHub or an anonymized OSF view-only link.
+Exports the tracked files of a commit, with no git history, for a code-and-data link under double-blind review. A per-repo `anonymize.toml` lists the paths to leave out, the text to replace (each rule must match), and the identity patterns; the bundled script blanks Office and PDF author metadata, masks names left in PDF strings such as annotation authors, and fails if any pattern survives in text, Office parts, binary files, or PDF text. The skill then checks that the export still builds and tests, and covers publishing through Anonymous GitHub or an anonymized OSF view-only link. `--push` commits each new export as "Anonymous" on top of the mirror's head and pushes without force, so re-publishing after a change is one command.
 
 #### `accessible-pdf`
 

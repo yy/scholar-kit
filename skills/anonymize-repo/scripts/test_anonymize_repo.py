@@ -111,3 +111,57 @@ def test_export_fails_when_a_rule_no_longer_matches(tmp_path):
     assert r.returncode == 1
     assert "replace rule matched nothing: README.md" in r.stdout
     assert "README.md:3" in r.stdout
+
+
+def git_in(cwd: Path, *args) -> str:
+    r = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=False)
+    return r.stdout.strip()
+
+
+def mirror_log(bare: Path) -> list[str]:
+    """Author and parents of each commit on main, newest first."""
+    return git_in(bare, "log", "--format=%an <%ae> %P", "main").splitlines()
+
+
+def test_push_creates_then_updates_mirror(tmp_path):
+    repo, bare = make_repo(tmp_path), tmp_path / "anon.git"
+    subprocess.run(["git", "init", "-q", "--bare", bare], check=True)
+    r = run("export", repo, tmp_path / "out1", "--push", bare)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert mirror_log(bare) == ["Anonymous <anonymous@example.invalid>"]  # a root commit
+
+    (repo / "paper" / "main.tex").write_text("\\author{Jane Doe}\n\\title{T2}\n")
+    subprocess.run(["git", "commit", "-qam", "edit"], cwd=repo, check=True, env=GIT)
+    r = run("export", repo, tmp_path / "out2", "--push", bare)
+    assert r.returncode == 0, r.stdout + r.stderr
+    first = git_in(bare, "rev-parse", "main~1")
+    assert mirror_log(bare) == [
+        f"Anonymous <anonymous@example.invalid> {first}",
+        "Anonymous <anonymous@example.invalid>",
+    ]
+    assert git_in(bare, "rev-parse", "main^{tree}") == git_in(
+        tmp_path / "out2", "rev-parse", "HEAD^{tree}"
+    )
+
+    r = run("export", repo, tmp_path / "out3", "--push", bare)
+    assert r.returncode == 0 and "nothing to push" in r.stdout, r.stdout + r.stderr
+    assert len(mirror_log(bare)) == 2
+
+
+def test_push_refuses_on_scan_hit(tmp_path):
+    repo, bare = make_repo(tmp_path), tmp_path / "anon.git"
+    subprocess.run(["git", "init", "-q", "--bare", bare], check=True)
+    (repo / "paper" / "main.tex").write_text("\\author{Jane Doe}\n% thanks jdoe\n")
+    subprocess.run(["git", "commit", "-qam", "edit"], cwd=repo, check=True, env=GIT)
+    r = run("export", repo, tmp_path / "out", "--push", bare)
+    assert r.returncode == 1 and "paper/main.tex:2" in r.stdout
+    assert mirror_log(bare) == []
+
+
+def test_push_refuses_a_remote_with_named_commits(tmp_path):
+    repo, bare = make_repo(tmp_path), tmp_path / "origin.git"
+    subprocess.run(["git", "init", "-q", "--bare", bare], check=True)
+    subprocess.run(["git", "push", "-q", bare, "HEAD:main"], cwd=repo, check=True, env=GIT)
+    r = run("export", repo, tmp_path / "out", "--push", bare)
+    assert r.returncode == 1 and "Jane Doe <jdoe@uni.example>" in r.stderr
+    assert mirror_log(bare) == ["Jane Doe <jdoe@uni.example>"]
