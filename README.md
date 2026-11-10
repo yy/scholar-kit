@@ -28,7 +28,7 @@ Inspect, verify, or critique artifacts — from programmatic checks to structure
 
 | Skill | Description |
 |-------|-------------|
-| `check-refs` | Verify citation references in LaTeX papers against academic databases using [bibsleuth](https://github.com/yy/bibsleuth) |
+| `check-refs` | Verify citation references in LaTeX papers (using [bibsleuth](https://github.com/yy/bibsleuth)) and Markdown reading lists against academic databases |
 | `latex-cleanup` | Review LaTeX documents for common issues, style consistency, typography, cross-references, and draft artifacts |
 | `verify-math` | Verify mathematical derivations step-by-step using SymPy |
 | `critique-figures` | Critique figures for format, colorblind safety, legibility, overplotting, and chart choice |
@@ -66,7 +66,7 @@ Queries the [OpenAlex](https://openalex.org) API for literature searches, citati
 
 #### `check-refs`
 
-Verifies that every citation in a LaTeX paper exists in academic databases, flags suspicious entries, and suggests missing DOIs/URLs. Uses [bibsleuth](https://github.com/yy/bibsleuth). Can run standalone or as part of `presubmit-checks`.
+Verifies that every citation in a LaTeX paper exists in academic databases, flags suspicious entries, and suggests missing DOIs/URLs. Uses [bibsleuth](https://github.com/yy/bibsleuth). Can run standalone or as part of `presubmit-checks`. For a syllabus or reading list in Markdown, a bundled script checks each entry against Crossref, arXiv, the linked page's citation metadata, or OpenLibrary, and reports mismatches, sources it could not read (including bot checks), and entries without a link.
 
 #### `latex-cleanup`
 

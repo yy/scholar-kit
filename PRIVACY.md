@@ -29,7 +29,7 @@ These skills send manuscript content or figures to the model provider but make n
 
 These skills send manuscript content to the model provider and additionally query external services:
 
-- **check-refs** — uses [bibsleuth](https://github.com/yy/bibsleuth), which queries academic databases (Semantic Scholar, CrossRef) to verify citations. When bibsleuth's LLM analysis mode is enabled, citation context may also be sent to LLM APIs (Anthropic or OpenAI) via your API keys. This mode requires explicit configuration and is not enabled by default.
+- **check-refs** — uses [bibsleuth](https://github.com/yy/bibsleuth), which queries academic databases (Semantic Scholar, CrossRef) to verify citations. When bibsleuth's LLM analysis mode is enabled, citation context may also be sent to LLM APIs (Anthropic or OpenAI) via your API keys. This mode requires explicit configuration and is not enabled by default. For Markdown reading lists, the bundled checker sends each entry's DOI to CrossRef, arXiv IDs to the arXiv API, and book titles with first-author names to OpenLibrary, and fetches the other linked pages.
 
 ### 4. Composite skills
 
@@ -47,7 +47,7 @@ These skills orchestrate other skills and inherit their data exposure:
 | `openalex` | Search terms | OpenAlex API |
 | `accessible-pdf` | `.tex` files | None |
 | `arxiv-prep` | `.tex` files | None |
-| `check-refs` | `.bib` files | Semantic Scholar, CrossRef; optionally LLM APIs |
+| `check-refs` | `.bib` files or a Markdown reading list | Semantic Scholar, CrossRef; for Markdown: CrossRef, arXiv, OpenLibrary, linked pages; optionally LLM APIs |
 | `critique-figures` | Figure images | None |
 | `critique-manuscript` | Full manuscript | None (optionally OpenAlex) |
 | `latex-cleanup` | `.tex` files | None |
