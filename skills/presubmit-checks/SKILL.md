@@ -1,6 +1,5 @@
 ---
 name: presubmit-checks
-user_invocable: true
 description: Check a LaTeX paper before submission or circulation. Verify references, compilation, LaTeX hygiene, figure quality, affiliations, acknowledgements, and code or data availability, then return one severity-ranked report.
 ---
 

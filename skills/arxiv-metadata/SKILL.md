@@ -1,6 +1,5 @@
 ---
 name: arxiv-metadata
-user_invocable: true
 description: Fetch structured metadata for an arXiv paper. Use when you have an arXiv ID or URL and need title, authors, date, categories, and DOI.
 ---
 

@@ -1,6 +1,5 @@
 ---
 name: critique-figures
-user_invocable: true
 description: Critique academic figures for print quality, accessibility, legibility, visual encoding, and statistical presentation. Use when reviewing figures or preparing a manuscript for submission.
 ---
 

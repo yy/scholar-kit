@@ -1,6 +1,5 @@
 ---
 name: bib-doi-toggle
-user_invocable: true
 description: Toggle DOI, URL, eprint, and ISBN display in a biblatex bibliography. Use when the user asks to show or hide identifiers or make bibliography identifiers available as links.
 ---
 

@@ -1,6 +1,5 @@
 ---
 name: arxiv-prep
-user_invocable: true
 description: Prepare a LaTeX paper's source package and metadata for arXiv. Use when the user is ready to upload a paper or wants an arXiv-compatible staging copy, archive, and compilation check.
 ---
 

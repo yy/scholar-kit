@@ -1,6 +1,9 @@
 # Privacy Policy
 
-claude-scholar is a set of skills (plugins) for Claude Code. All skills run inside an AI coding agent, which means any content the agent reads during execution (LaTeX source, bibliography files, figure images, etc.) is sent to the underlying model provider (e.g., Anthropic's Claude API) as part of the conversation. This is inherent to how AI coding agents work and applies to all skills.
+scholar-kit is a collection of skills for AI agents.
+Content an agent reads during execution, including manuscript text, figures, code, and data, enters its model context.
+With a hosted model, that content is sent to the configured provider; local models and individual harnesses have their own processing and retention arrangements.
+Subagents may use additional configured model providers.
 
 Beyond the model provider, skills vary in whether they send data to additional external services:
 
@@ -58,4 +61,4 @@ Please refer to each external service's own privacy policy for how they handle i
 
 ## Contact
 
-If you have questions about this policy, please open an issue at https://github.com/yy/claude-scholar/issues.
+If you have questions about this policy, please [open an issue](https://github.com/yy/scholar-kit/issues).

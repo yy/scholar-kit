@@ -1,6 +1,5 @@
 ---
 name: doi-bibtex
-user_invocable: true
 description: Fetch a BibTeX citation from a DOI and optionally add it to a bibliography. Use when the user provides a DOI or DOI URL and wants the citation displayed or added to a .bib file.
 ---
 

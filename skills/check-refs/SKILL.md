@@ -1,6 +1,5 @@
 ---
 name: check-refs
-user_invocable: true
 description: Match references in a LaTeX paper against academic databases, flag entries that need review, and suggest missing DOIs or URLs. Use when checking citations or preparing a paper for submission.
 ---
 

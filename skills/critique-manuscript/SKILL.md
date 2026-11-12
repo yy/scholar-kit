@@ -1,6 +1,5 @@
 ---
 name: critique-manuscript
-user_invocable: true
 description: Critique an academic manuscript for novelty, methodological rigor, causal claims, data quality, generalizability, mechanism, and presentation. Use for pre-submission review or anticipating reviewer concerns.
 ---
 

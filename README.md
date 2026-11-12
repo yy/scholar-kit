@@ -1,14 +1,20 @@
-# claude-scholar
+# scholar-kit
 
-Academic research tools for [Claude Code](https://claude.ai/code). Literature search, citation management, LaTeX checks, math verification, manuscript critique, and submission preparation. These tools assist with formatting and verification—they do not generate original research content. Please check your venue's AI use policy for guidance on whether and how to use these tools.
+Academic research skills for AI agents: literature search, citation management, LaTeX checks, math verification, manuscript critique, and submission preparation.
+Each skill is a directory containing `SKILL.md` and any supporting scripts, using the [Agent Skills format](https://agentskills.io/specification).
+Use them with a harness that supports that format, or ask your agent to read a skill's instructions directly.
+Capabilities depend on the harness and the tools available to it.
+These skills support research checks and preparation; authors remain responsible for the work and their venue's AI use policy.
+
+Previously named `claude-scholar`.
 
 > **Note**: These skills are early-stage and not comprehensively tested. Proceed with caution!
 
-> **Privacy**: Some skills send manuscript content, figures, or bibliographic data to AI model providers and external APIs. Read [PRIVACY.md](PRIVACY.md) to understand what data goes where, and discuss with your co-authors before using this plugin on shared work.
+> **Privacy**: Some skills send manuscript content, figures, or bibliographic data to AI model providers and external APIs. Read [PRIVACY.md](PRIVACY.md) to understand what data goes where, and discuss with your co-authors before using these skills on shared work.
 
 ## Basic principle for skill development and inclusion 
 
-Don't overbuild. Foundation models and agent harnesses are getting better fast, and overbuilt structure becomes a maintenance burden that constrains the base model rather than helping it. These skills exist only where they add something Claude can't quickly or easily do on its own: calling external APIs, running programmatic verification, or encoding multi-step checklists that are easy to forget. No skill for something Claude already handles well out of the box or will likely handle with minimal guidance or conversation.
+Don't overbuild. Foundation models and agent harnesses are getting better fast, and overbuilt structure becomes a maintenance burden. These skills exist where they add something an agent can't quickly or easily do on its own: calling external APIs, running programmatic verification, or encoding multi-step checks that are easy to forget. Keep instructions portable and harness-specific packaging small.
 
 ## Skills
 
@@ -56,7 +62,7 @@ Fetches structured metadata from arXiv given an arXiv ID or URL — title, autho
 
 #### `doi-bibtex`
 
-Given a DOI (bare or full URL), fetches the BibTeX entry and appends it to the project's `.bib` file, checking for duplicates. Simple utility — mainly invoked by Claude when adding references.
+Given a DOI (bare or full URL), fetches the BibTeX entry and appends it to the project's `.bib` file, checking for duplicates. Mainly used when adding references.
 
 #### `openalex`
 
@@ -82,7 +88,9 @@ Critiques academic figures using a mix of programmatic checks and vision analysi
 
 #### `critique-manuscript`
 
-Structured self-review of your own manuscript before submission. Evaluates the paper across seven review criteria — literature and novelty, methodological rigor, causal claims, data quality, generalizability, mechanism, and clarity — and produces a report with top risks, what to preserve, anticipated reviewer questions, and detailed criterion-by-criterion comments anchored to specific sections of the paper. Optionally searches OpenAlex for missing literature. Designed strictly for self-review; declines to review others' unpublished work and explains why.
+Reviews an authorized manuscript against seven criteria: literature and novelty, methodological rigor, causal claims, data quality, generalizability, mechanism, and clarity.
+Returns findings in chat, anchored to the manuscript, with risks, strengths, and anticipated reviewer questions.
+External literature search is opt-in.
 
 ### Orchestration
 
@@ -108,28 +116,76 @@ Transforms a LaTeX document to produce tagged, screen-reader-friendly PDFs compl
 
 ## Installation
 
+### Copy or symlink skills
+
+Clone the repository, then copy or symlink the individual skill directories you want into your harness's documented skills directory.
+Keep each whole directory so its scripts and other resources remain available.
+
+```sh
+git clone https://github.com/yy/scholar-kit.git
+
+# Replace this example path with your harness's skills directory.
+skill_target="/path/to/agent/skills"
+mkdir -p "$skill_target"
+ln -s "$PWD/scholar-kit/skills/check-refs" "$skill_target/check-refs"
 ```
-/plugin marketplace add yy/claude-scholar
-/plugin install claude-scholar@yy-claude-scholar
+
+Use `cp -R` instead of `ln -s` if your harness does not follow symlinks.
+Install companion skills when a workflow needs them: `presubmit-checks` uses `check-refs`, `latex-cleanup`, and `critique-figures`.
+Ask the agent to use a skill by name, using your harness's invocation syntax.
+
+### Optional: Skillink
+
+[Skillink](https://github.com/yy/skillink) manages skill symlinks through a TOML manifest, with a selection and destination for each agent profile.
+It is useful when several harnesses share the same source checkout.
+For example, save this as `skills.toml` and replace the paths with your own:
+
+```toml
+format_version = 1
+
+[sources]
+scholar = "~/git/scholar-kit/skills"
+
+[profiles.my-agent]
+target = "~/path/to/agent/skills"
+include = ["scholar/check-refs", "scholar/critique-manuscript"]
+# Use ["scholar/*"] to include all skills.
+```
+
+From a Skillink checkout:
+
+```sh
+uv run bin/install_skills.py my-agent --manifest /path/to/skills.toml --dry-run
+uv run bin/install_skills.py my-agent --manifest /path/to/skills.toml
+uv run bin/install_skills.py my-agent --manifest /path/to/skills.toml --check
+```
+
+Skillink is optional; scholar-kit has no custom installer or background service.
+
+### Claude Code plugin
+
+The existing marketplace remains available as a small adapter:
+
+```text
+/plugin marketplace add yy/scholar-kit
+/plugin install scholar-kit@scholar-kit
 /reload-plugins
 ```
 
-Skills are invoked as slash commands:
+Plugin skills use names such as `/scholar-kit:check-refs`.
+See the [Claude Code marketplace documentation](https://code.claude.com/docs/en/plugin-marketplaces) for installation details.
+Use one installation method per harness to avoid loading duplicate skills.
+If you used the old plugin, uninstall it and remove the old marketplace before installing under the new name.
 
+### Existing checkout
+
+Update its remote after the rename:
+
+```sh
+git remote set-url origin https://github.com/yy/scholar-kit.git
 ```
-/arxiv-metadata 2301.10140
-/doi-bibtex 10.1038/nature12373
-/check-refs
-/latex-cleanup
-/presubmit-checks
-/verify-math
-/openalex
-/bib-doi-toggle
-/arxiv-prep
-/critique-manuscript
-/critique-figures
-/accessible-pdf
-```
+
+If you also rename the local checkout directory, update any skill symlinks or Skillink source paths that pointed to it.
 
 ## Dependencies
 

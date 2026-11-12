@@ -1,32 +1,17 @@
 {
-  "name": "claude-scholar",
+  "name": "scholar-kit",
   "owner": {
     "name": "YY Ahn",
     "email": "yongyeol@gmail.com"
   },
   "metadata": {
-    "description": "Academic research tools — arXiv metadata, OpenAlex, BibTeX, citation verification, LaTeX cleanup, math verification, pre-submission checks, and manuscript critique",
-    "version": "0.1.1"
+    "description": "Academic research skills: literature lookup, citation verification, LaTeX checks, and submission preparation"
   },
   "plugins": [
     {
-      "name": "claude-scholar",
+      "name": "scholar-kit",
       "description": "Academic research tools for scholarly workflow",
-      "source": "./",
-      "skills": [
-        "./skills/arxiv-metadata",
-        "./skills/arxiv-prep",
-        "./skills/check-refs",
-        "./skills/bib-doi-toggle",
-        "./skills/doi-bibtex",
-        "./skills/latex-cleanup",
-        "./skills/verify-math",
-        "./skills/openalex",
-        "./skills/presubmit-checks",
-        "./skills/critique-manuscript",
-        "./skills/critique-figures",
-        "./skills/accessible-pdf"
-      ]
+      "source": "./"
     }
   ]
 }
